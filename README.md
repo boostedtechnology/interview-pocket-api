@@ -80,6 +80,9 @@ tests/
 # Install dependencies
 npm install
 
+# Create environment file
+cp .env.example .env
+
 # Generate Prisma client
 npm run db:generate
 
@@ -88,4 +91,14 @@ npm run db:push
 
 # Start development server
 npm run dev
+```
+
+## Running Tests
+
+```bash
+# Run tests once
+npm test
+
+# Run tests in watch mode
+npm run test:watch
 ```
