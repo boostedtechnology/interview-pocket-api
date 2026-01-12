@@ -4,13 +4,12 @@ A bookmark management service API built with Fastify and Prisma.
 
 ## Context
 
-This codebase was developed by a small team (2 engineers) over ~2 months to reach MVP.
-The service currently handles approximately 1,000 daily active users and is being
-considered for expansion to 100k+ users.
+This codebase was developed by a small team (2 engineers) to power a bookmarking app, Pocket.
+The service currently handles approximately 1,000 daily active users and is being considered for acquisition by a larger company with potential expansion to 100k+ users.
 
 ## Your Task
 
-**Time:** 30-60 minutes (review only - no need to build or run the project)
+**Time:** 30-60 minutes (review only - no need to build or run the project, unless you want)
 
 Please review this codebase and prepare to discuss the following in our conversation:
 
@@ -29,21 +28,9 @@ Please review this codebase and prepare to discuss the following in our conversa
 ## Project Structure
 
 ```
-src/
-├── routes/          # API endpoint definitions
-├── services/        # Business logic layer
-├── middleware/      # Request middleware (auth, etc.)
-├── utils/           # Shared utilities
-├── types/           # TypeScript type definitions
-├── app.ts           # Fastify app configuration
-├── config.ts        # Application configuration
-└── index.ts         # Entry point
-
-prisma/
-└── schema.prisma    # Database schema
-
-tests/
-└── bookmarks.test.ts  # Test suite
+src/     # Most application logic
+prisma/  # Database schema
+tests/   # Test suite
 ```
 
 ## Tech Stack
@@ -93,7 +80,7 @@ npm run db:push
 npm run dev
 ```
 
-## Running Tests
+## Running Tests (Optional)
 
 ```bash
 # Run tests once

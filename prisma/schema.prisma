@@ -32,7 +32,6 @@ model Bookmark {
 
   tags BookmarkTag[]
 
-  // NOTE: Missing index on [userId, createdAt] for sort queries (Issue #7)
   @@map("bookmarks")
 }
 

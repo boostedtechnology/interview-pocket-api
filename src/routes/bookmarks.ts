@@ -32,9 +32,7 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
     async (request: FastifyRequest<{ Body: CreateBookmarkInput }>, reply: FastifyReply) => {
       const { url } = request.body;
 
-      // Validate URL
       if (!isValidUrl(url)) {
-        // Inconsistent error response - returns directly instead of throwing (Issue #8)
         return reply.status(400).send({ error: 'Invalid URL format' });
       }
 
@@ -45,14 +43,12 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
 
   /**
    * List bookmarks
-   * NOTE: No max limit on pagination (Issue #5)
    */
   fastify.get<{ Querystring: ListQuerystring }>(
     '/',
     async (request: FastifyRequest<{ Querystring: ListQuerystring }>, _reply: FastifyReply) => {
       const { limit, offset, isArchived, tagId, search } = request.query;
 
-      // No max limit validation - user can request any number of items (Issue #5)
       const pagination: PaginationParams = {
         limit: limit ? parseInt(String(limit), 10) : 20,
         offset: offset ? parseInt(String(offset), 10) : 0,

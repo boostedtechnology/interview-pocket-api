@@ -1,7 +1,6 @@
 import type { UrlMetadata } from '../types/index.js';
 
 // In-memory cache for URL metadata
-// NOTE: No eviction policy - memory grows unbounded (Issue #10)
 const metadataCache = new Map<string, UrlMetadata>();
 
 /**
@@ -23,8 +22,6 @@ function parseHtml(html: string): UrlMetadata {
 
 /**
  * Fetches metadata from a URL
- * NOTE: This is called synchronously during bookmark creation (Issue #6)
- * NOTE: Errors are swallowed without logging (Issue #9)
  */
 export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   // Check cache first
@@ -55,12 +52,10 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
       description: metadata.description,
     };
 
-    // Cache forever - no TTL or eviction (Issue #10)
     metadataCache.set(url, result);
 
     return result;
   } catch {
-    // Swallow all errors - no logging or indication of failure (Issue #9)
     return { title: url, description: '' };
   }
 }

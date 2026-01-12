@@ -13,17 +13,14 @@ import type {
 const prisma = new PrismaClient();
 
 export class BookmarkService {
-  // Direct instantiation - tight coupling (Issue #11)
   private tagService = new TagService();
 
   /**
    * Create a new bookmark
-   * NOTE: Synchronously fetches URL metadata (Issue #6 - handled in url-parser)
    */
   async create(userId: string, input: CreateBookmarkInput): Promise<BookmarkWithTags> {
     const { url, title, description, tags } = input;
 
-    // Fetch metadata synchronously if no title provided (Issue #6)
     let finalTitle = title;
     let finalDescription = description;
 
@@ -84,7 +81,6 @@ export class BookmarkService {
 
   /**
    * List bookmarks with optional filters
-   * NOTE: N+1 query problem - fetches tags in a loop (Issue #4)
    */
   async list(
     userId: string,
@@ -123,7 +119,6 @@ export class BookmarkService {
       skip: offset,
     });
 
-    // N+1 Query Problem: Fetch tags separately for each bookmark (Issue #4)
     const bookmarksWithTags: BookmarkWithTags[] = [];
 
     for (const bookmark of bookmarks) {

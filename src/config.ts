@@ -4,7 +4,6 @@ export const config = {
   host: process.env.HOST || '0.0.0.0',
 
   // JWT configuration
-  // NOTE: Falls back to development secret if not set (Issue #1 - Security)
   jwtSecret: process.env.JWT_SECRET || 'development-secret-do-not-use-in-prod',
   jwtExpiresIn: '7d',
 

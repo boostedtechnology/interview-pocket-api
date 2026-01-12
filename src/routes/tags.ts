@@ -42,7 +42,6 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
       const { name } = request.body;
 
       if (!name || name.trim().length === 0) {
-        // Inconsistent error response format (Issue #8)
         return reply.status(400).send({ message: 'Name is required', code: 'INVALID_INPUT' });
       }
 

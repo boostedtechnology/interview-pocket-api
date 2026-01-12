@@ -3,7 +3,6 @@ import { config } from './config.js';
 
 /**
  * Start the server
- * NOTE: Missing graceful shutdown handling (Issue #12)
  */
 async function start(): Promise<void> {
   const app = await buildApp();

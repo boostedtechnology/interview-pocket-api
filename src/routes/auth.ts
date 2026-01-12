@@ -29,7 +29,6 @@ const loginSchema = {
 
 /**
  * Auth routes plugin
- * NOTE: No rate limiting on auth endpoints (Issue #2)
  */
 export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   /**

@@ -59,7 +59,6 @@ export class UserService {
 
   /**
    * Login user and return JWT token
-   * NOTE: Timing attack vulnerability - returns faster for non-existent users (Issue #3)
    */
   async login(input: LoginInput): Promise<AuthResponse> {
     const { email, password } = input;
@@ -69,7 +68,6 @@ export class UserService {
       where: { email: email.toLowerCase() },
     });
 
-    // Early return for non-existent user - timing leak! (Issue #3)
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');
     }
