@@ -130,9 +130,29 @@ export class UserService {
 
   /**
    * Validate email format
+   * - Local part: alphanumeric, dots, hyphens, underscores (no leading/trailing dots)
+   * - Domain: alphanumeric and hyphens
+   * - TLD: 2+ alphabetic characters
+   * - No consecutive dots allowed
    */
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+    
+    // Additional checks for common issues
+    if (email.includes('..') || email.startsWith('.') || email.endsWith('.')) {
+      return false;
+    }
+    
+    const [localPart, domain] = email.split('@');
+    if (!localPart || !domain) {
+      return false;
+    }
+    
+    // Local part cannot start or end with a dot
+    if (localPart.startsWith('.') || localPart.endsWith('.')) {
+      return false;
+    }
+    
     return emailRegex.test(email);
   }
 }
