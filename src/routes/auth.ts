@@ -1,31 +1,30 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { Type, type Static } from '@sinclair/typebox';
+import type { FastifyInstance } from 'fastify';
 import { UserService } from '../services/user.service.js';
-import type { RegisterInput, LoginInput } from '../types/index.js';
 
 const userService = new UserService();
 
-// Request body schemas for validation (good pattern)
-const registerSchema = {
-  body: {
-    type: 'object',
-    required: ['email', 'password'],
-    properties: {
-      email: { type: 'string', format: 'email' },
-      password: { type: 'string', minLength: 8 },
-    },
-  },
-} as const;
+// TypeBox schemas for validation and type safety
+const RegisterRequestSchema = Type.Object({
+  email: Type.String({ format: 'email' }),
+  password: Type.String({ minLength: 8 }),
+});
 
-const loginSchema = {
-  body: {
-    type: 'object',
-    required: ['email', 'password'],
-    properties: {
-      email: { type: 'string' },
-      password: { type: 'string' },
-    },
-  },
-} as const;
+const LoginRequestSchema = Type.Object({
+  email: Type.String(),
+  password: Type.String(),
+});
+
+const AuthResponseSchema = Type.Object({
+  token: Type.String(),
+  user: Type.Object({
+    id: Type.String(),
+    email: Type.String(),
+  }),
+});
+
+type RegisterRequest = Static<typeof RegisterRequestSchema>;
+type LoginRequest = Static<typeof LoginRequestSchema>;
 
 /**
  * Auth routes plugin
@@ -34,10 +33,10 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   /**
    * Register a new user
    */
-  fastify.post<{ Body: RegisterInput }>(
+  fastify.post<{ Body: RegisterRequest }>(
     '/register',
-    { schema: registerSchema },
-    async (request: FastifyRequest<{ Body: RegisterInput }>, reply: FastifyReply) => {
+    { schema: { body: RegisterRequestSchema, response: { 201: AuthResponseSchema } } },
+    async (request, reply) => {
       const result = await userService.register(request.body);
       return reply.status(201).send(result);
     }
@@ -46,10 +45,10 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   /**
    * Login user
    */
-  fastify.post<{ Body: LoginInput }>(
+  fastify.post<{ Body: LoginRequest }>(
     '/login',
-    { schema: loginSchema },
-    async (request: FastifyRequest<{ Body: LoginInput }>, _reply: FastifyReply) => {
+    { schema: { body: LoginRequestSchema, response: { 200: AuthResponseSchema } } },
+    async (request) => {
       const result = await userService.login(request.body);
       return result;
     }

@@ -1,4 +1,5 @@
 import Fastify, { FastifyInstance, FastifyError, FastifyRequest, FastifyReply } from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import cors from '@fastify/cors';
 import { config } from './config.js';
 import { authRoutes } from './routes/auth.js';
@@ -19,7 +20,7 @@ export async function buildApp(): Promise<FastifyInstance> {
           },
         }
       : true,
-  });
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   // Register CORS
   await app.register(cors, {

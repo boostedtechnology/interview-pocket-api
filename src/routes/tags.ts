@@ -1,16 +1,31 @@
+import { Type, type Static } from '@sinclair/typebox';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TagService } from '../services/tag.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const tagService = new TagService();
 
-interface TagParams {
-  id: string;
-}
+// TypeBox schemas
+const TagParamsSchema = Type.Object({
+  id: Type.String(),
+});
 
-interface RenameBody {
-  name: string;
-}
+const TagWithCountSchema = Type.Object({
+  id: Type.String(),
+  name: Type.String(),
+  bookmarkCount: Type.Number(),
+});
+
+const RenameBodySchema = Type.Object({
+  name: Type.String({ minLength: 1 }),
+});
+
+const TagListResponseSchema = Type.Object({
+  data: Type.Array(TagWithCountSchema),
+});
+
+type TagParams = Static<typeof TagParamsSchema>;
+type RenameBody = Static<typeof RenameBodySchema>;
 
 /**
  * Tag routes plugin
@@ -24,6 +39,7 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
    */
   fastify.get(
     '/',
+    { schema: { response: { 200: TagListResponseSchema } } },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const tags = await tagService.getUserTags(request.user!.id);
       return { data: tags };
@@ -35,17 +51,12 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
    */
   fastify.patch<{ Params: TagParams; Body: RenameBody }>(
     '/:id',
+    { schema: { params: TagParamsSchema, body: RenameBodySchema, response: { 200: Type.Object({ success: Type.Boolean() }) } } },
     async (
       request: FastifyRequest<{ Params: TagParams; Body: RenameBody }>,
       reply: FastifyReply
     ) => {
-      const { name } = request.body;
-
-      if (!name || name.trim().length === 0) {
-        return reply.status(400).send({ message: 'Name is required', code: 'INVALID_INPUT' });
-      }
-
-      await tagService.renameTag(request.user!.id, request.params.id, name);
+      await tagService.renameTag(request.user!.id, request.params.id, request.body.name);
       return { success: true };
     }
   );
@@ -55,6 +66,7 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
    */
   fastify.delete<{ Params: TagParams }>(
     '/:id',
+    { schema: { params: TagParamsSchema } },
     async (request: FastifyRequest<{ Params: TagParams }>, reply: FastifyReply) => {
       await tagService.deleteTag(request.user!.id, request.params.id);
       return reply.status(204).send();
