@@ -27,26 +27,28 @@ export async function buildApp(): Promise<FastifyInstance> {
     credentials: true,
   });
 
-  // Global error handler (good pattern)
-  app.setErrorHandler(
-    (error: FastifyError | AppError, _request: FastifyRequest, reply: FastifyReply) => {
-      const statusCode = 'statusCode' in error ? error.statusCode ?? 500 : 500;
-      const code = 'code' in error && typeof error.code === 'string' ? error.code : 'INTERNAL_ERROR';
+   // Global error handler (good pattern)
+   app.setErrorHandler(
+     (error: FastifyError | AppError, _request: FastifyRequest, reply: FastifyReply) => {
+       const statusCode = 'statusCode' in error ? error.statusCode ?? 500 : 500;
+       const code = 'code' in error && typeof error.code === 'string' ? error.code : 'INTERNAL_ERROR';
 
-      // Log error in development
-      if (config.isDevelopment) {
-        app.log.error(error);
-      }
+       // Always log errors, but include stack trace only in development
+       app.log.error({
+         message: error.message,
+         code,
+         ...(config.isDevelopment && { stack: error.stack }),
+       });
 
-      reply.status(statusCode).send({
-        error: {
-          message: error.message,
-          code,
-          ...(config.isDevelopment && { stack: error.stack }),
-        },
-      });
-    }
-  );
+       reply.status(statusCode).send({
+         error: {
+           message: error.message,
+           code,
+           ...(config.isDevelopment && { stack: error.stack }),
+         },
+       });
+     }
+   );
 
   // Health check endpoint
   app.get('/health', async () => {
