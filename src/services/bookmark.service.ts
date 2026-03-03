@@ -8,6 +8,7 @@ import type {
   BookmarkFilters,
   PaginationParams,
   BookmarkWithTags,
+  BookmarkListResponse,
 } from '../types/index.js';
 
 const prisma = new PrismaClient();
@@ -86,7 +87,7 @@ export class BookmarkService {
     userId: string,
     pagination: PaginationParams = {},
     filters: BookmarkFilters = {}
-  ): Promise<BookmarkWithTags[]> {
+  ): Promise<BookmarkListResponse> {
     const { limit = 20, offset = 0 } = pagination;
     const { isArchived, tagId, search } = filters;
 
@@ -111,27 +112,32 @@ export class BookmarkService {
       ];
     }
 
-    // Fetch bookmarks with tags in a single query
-    const bookmarks = await prisma.bookmark.findMany({
-      where,
-      include: {
-        tags: {
-          include: { tag: true },
+    // Fetch bookmarks with tags in a single query and get total count
+    const [bookmarks, total] = await Promise.all([
+      prisma.bookmark.findMany({
+        where,
+        include: {
+          tags: {
+            include: { tag: true },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset,
-    });
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.bookmark.count({ where }),
+    ]);
 
     // Map to the expected format
-    return bookmarks.map((bookmark) => ({
+    const data = bookmarks.map((bookmark) => ({
       ...bookmark,
       tags: bookmark.tags.map((bt) => ({
         id: bt.tag.id,
         name: bt.tag.name,
       })),
     }));
+
+    return { data, total, limit, offset };
   }
 
   /**

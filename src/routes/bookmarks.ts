@@ -61,13 +61,13 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
       if (tagId) filters.tagId = tagId;
       if (search) filters.search = search;
 
-      const bookmarks = await bookmarkService.list(
+      const result = await bookmarkService.list(
         request.user!.id,
         pagination,
         filters
       );
 
-      return { data: bookmarks };
+      return result;
     }
   );
 

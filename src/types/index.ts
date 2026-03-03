@@ -50,6 +50,13 @@ export interface PaginationParams {
   offset?: number;
 }
 
+export interface BookmarkListResponse {
+  data: BookmarkWithTags[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export interface BookmarkWithTags {
   id: string;
   url: string;
