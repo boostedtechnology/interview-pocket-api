@@ -111,32 +111,27 @@ export class BookmarkService {
       ];
     }
 
-    // Fetch bookmarks without tags
+    // Fetch bookmarks with tags in a single query
     const bookmarks = await prisma.bookmark.findMany({
       where,
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
     });
 
-    const bookmarksWithTags: BookmarkWithTags[] = [];
-
-    for (const bookmark of bookmarks) {
-      const bookmarkTags = await prisma.bookmarkTag.findMany({
-        where: { bookmarkId: bookmark.id },
-        include: { tag: true },
-      });
-
-      bookmarksWithTags.push({
-        ...bookmark,
-        tags: bookmarkTags.map((bt) => ({
-          id: bt.tag.id,
-          name: bt.tag.name,
-        })),
-      });
-    }
-
-    return bookmarksWithTags;
+    // Map to the expected format
+    return bookmarks.map((bookmark) => ({
+      ...bookmark,
+      tags: bookmark.tags.map((bt) => ({
+        id: bt.tag.id,
+        name: bt.tag.name,
+      })),
+    }));
   }
 
   /**
