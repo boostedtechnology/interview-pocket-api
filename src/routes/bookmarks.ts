@@ -1,10 +1,8 @@
 import { Type, type Static } from '@sinclair/typebox';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { BookmarkService } from '../services/bookmark.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { isValidUrl } from '../utils/url-parser.js';
-
-const bookmarkService = new BookmarkService();
+import { container } from '../container.js';
 
 // TypeBox schemas
 const BookmarkParamsSchema = Type.Object({
@@ -82,7 +80,7 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'Invalid URL format' });
       }
 
-      const bookmark = await bookmarkService.create(request.user!.id, request.body);
+      const bookmark = await container.getBookmarkService().create(request.user!.id, request.body);
       return reply.status(201).send(bookmark);
     }
   );
@@ -108,7 +106,7 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
       if (tagId) filters.tagId = tagId;
       if (search) filters.search = search;
 
-      const result = await bookmarkService.list(request.user!.id, pagination, filters as any);
+       const result = await container.getBookmarkService().list(request.user!.id, pagination, filters as any);
 
       return result;
     }
@@ -121,10 +119,10 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
     '/:id',
     { schema: { params: BookmarkParamsSchema, response: { 200: BookmarkSchema } } },
     async (request: FastifyRequest<{ Params: BookmarkParams }>, _reply: FastifyReply) => {
-      const bookmark = await bookmarkService.getById(
-        request.user!.id,
-        request.params.id
-      );
+       const bookmark = await container.getBookmarkService().getById(
+         request.user!.id,
+         request.params.id
+       );
       return bookmark;
     }
   );
@@ -139,11 +137,11 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
       request: FastifyRequest<{ Params: BookmarkParams; Body: UpdateBookmarkRequest }>,
       _reply: FastifyReply
     ) => {
-      const bookmark = await bookmarkService.update(
-        request.user!.id,
-        request.params.id,
-        request.body
-      );
+       const bookmark = await container.getBookmarkService().update(
+         request.user!.id,
+         request.params.id,
+         request.body
+       );
       return bookmark;
     }
   );
@@ -155,7 +153,7 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
     '/:id',
     { schema: { params: BookmarkParamsSchema } },
     async (request: FastifyRequest<{ Params: BookmarkParams }>, reply: FastifyReply) => {
-      await bookmarkService.delete(request.user!.id, request.params.id);
+       await container.getBookmarkService().delete(request.user!.id, request.params.id);
       return reply.status(204).send();
     }
   );
@@ -167,11 +165,11 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
     '/:id/archive',
     { schema: { params: BookmarkParamsSchema, response: { 200: BookmarkSchema } } },
     async (request: FastifyRequest<{ Params: BookmarkParams }>, _reply: FastifyReply) => {
-      const bookmark = await bookmarkService.setArchived(
-        request.user!.id,
-        request.params.id,
-        true
-      );
+       const bookmark = await container.getBookmarkService().setArchived(
+         request.user!.id,
+         request.params.id,
+         true
+       );
       return bookmark;
     }
   );
@@ -183,11 +181,11 @@ export async function bookmarkRoutes(fastify: FastifyInstance): Promise<void> {
     '/:id/unarchive',
     { schema: { params: BookmarkParamsSchema, response: { 200: BookmarkSchema } } },
     async (request: FastifyRequest<{ Params: BookmarkParams }>, _reply: FastifyReply) => {
-      const bookmark = await bookmarkService.setArchived(
-        request.user!.id,
-        request.params.id,
-        false
-      );
+       const bookmark = await container.getBookmarkService().setArchived(
+         request.user!.id,
+         request.params.id,
+         false
+       );
       return bookmark;
     }
   );

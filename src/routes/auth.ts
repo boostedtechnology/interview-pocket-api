@@ -1,8 +1,6 @@
 import { Type, type Static } from '@sinclair/typebox';
 import type { FastifyInstance } from 'fastify';
-import { UserService } from '../services/user.service.js';
-
-const userService = new UserService();
+import { container } from '../container.js';
 
 // TypeBox schemas for validation and type safety
 const RegisterRequestSchema = Type.Object({
@@ -37,7 +35,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     '/register',
     { schema: { body: RegisterRequestSchema, response: { 201: AuthResponseSchema } } },
     async (request, reply) => {
-      const result = await userService.register(request.body);
+      const result = await container.getUserService().register(request.body);
       return reply.status(201).send(result);
     }
   );
@@ -49,7 +47,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     '/login',
     { schema: { body: LoginRequestSchema, response: { 200: AuthResponseSchema } } },
     async (request) => {
-      const result = await userService.login(request.body);
+      const result = await container.getUserService().login(request.body);
       return result;
     }
   );

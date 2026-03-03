@@ -1,9 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { UserService } from '../services/user.service.js';
 import { UnauthorizedError } from '../utils/errors.js';
+import { container } from '../container.js';
 import type { AuthUser } from '../types/index.js';
-
-const userService = new UserService();
 
 // Extend FastifyRequest to include user
 declare module 'fastify' {
@@ -32,8 +30,8 @@ export async function authMiddleware(
     throw new UnauthorizedError('Invalid authorization format');
   }
 
-  const user = await userService.verifyToken(token);
-  request.user = user;
+   const user = await container.getUserService().verifyToken(token);
+   request.user = user;
 }
 
 /**
@@ -55,10 +53,10 @@ export async function optionalAuthMiddleware(
     return;
   }
 
-  try {
-    const user = await userService.verifyToken(token);
-    request.user = user;
-  } catch {
+   try {
+     const user = await container.getUserService().verifyToken(token);
+     request.user = user;
+   } catch {
     // Silently ignore invalid tokens for optional auth
   }
 }

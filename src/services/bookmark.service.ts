@@ -11,10 +11,14 @@ import type {
   BookmarkListResponse,
 } from '../types/index.js';
 
-const prisma = new PrismaClient();
-
 export class BookmarkService {
-  private tagService = new TagService();
+  private prisma: PrismaClient;
+  private tagService: TagService;
+
+  constructor(prisma: PrismaClient, tagService: TagService) {
+    this.prisma = prisma;
+    this.tagService = tagService;
+  }
 
   /**
    * Create a new bookmark
@@ -31,8 +35,8 @@ export class BookmarkService {
       finalDescription = description || metadata.description;
     }
 
-    // Create bookmark
-    const bookmark = await prisma.bookmark.create({
+     // Create bookmark
+     const bookmark = await this.prisma.bookmark.create({
       data: {
         url,
         title: finalTitle,
@@ -53,8 +57,8 @@ export class BookmarkService {
   /**
    * Get bookmark by ID
    */
-  async getById(userId: string, bookmarkId: string): Promise<BookmarkWithTags> {
-    const bookmark = await prisma.bookmark.findUnique({
+   async getById(userId: string, bookmarkId: string): Promise<BookmarkWithTags> {
+     const bookmark = await this.prisma.bookmark.findUnique({
       where: { id: bookmarkId },
       include: {
         tags: {
@@ -108,21 +112,21 @@ export class BookmarkService {
       ];
     }
 
-    // Fetch bookmarks with tags in a single query and get total count
-    const [bookmarks, total] = await Promise.all([
-      prisma.bookmark.findMany({
-        where,
-        include: {
-          tags: {
-            include: { tag: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.bookmark.count({ where }),
-    ]);
+     // Fetch bookmarks with tags in a single query and get total count
+     const [bookmarks, total] = await Promise.all([
+       this.prisma.bookmark.findMany({
+         where,
+         include: {
+           tags: {
+             include: { tag: true },
+           },
+         },
+         orderBy: { createdAt: 'desc' },
+         take: limit,
+         skip: offset,
+       }),
+       this.prisma.bookmark.count({ where }),
+     ]);
 
     // Map to the expected format
     const data = bookmarks.map((bookmark) => ({
@@ -144,8 +148,8 @@ export class BookmarkService {
     bookmarkId: string,
     input: UpdateBookmarkInput
   ): Promise<BookmarkWithTags> {
-    // Verify ownership by combining checks - return not found if either is false
-    const existing = await prisma.bookmark.findUnique({
+     // Verify ownership by combining checks - return not found if either is false
+     const existing = await this.prisma.bookmark.findUnique({
       where: { id: bookmarkId },
     });
 
@@ -155,8 +159,8 @@ export class BookmarkService {
 
     const { tags, ...updateData } = input;
 
-    // Update bookmark
-    await prisma.bookmark.update({
+     // Update bookmark
+     await this.prisma.bookmark.update({
       where: { id: bookmarkId },
       data: updateData,
     });
@@ -173,8 +177,8 @@ export class BookmarkService {
   /**
    * Delete a bookmark
    */
-  async delete(userId: string, bookmarkId: string): Promise<void> {
-    const bookmark = await prisma.bookmark.findUnique({
+   async delete(userId: string, bookmarkId: string): Promise<void> {
+     const bookmark = await this.prisma.bookmark.findUnique({
       where: { id: bookmarkId },
     });
 
@@ -182,10 +186,10 @@ export class BookmarkService {
       throw new NotFoundError('Bookmark not found');
     }
 
-    await prisma.bookmark.delete({
-      where: { id: bookmarkId },
-    });
-  }
+     await this.prisma.bookmark.delete({
+       where: { id: bookmarkId },
+     });
+   }
 
   /**
    * Archive or unarchive a bookmark

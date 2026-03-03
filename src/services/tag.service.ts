@@ -2,14 +2,17 @@ import { PrismaClient } from '@prisma/client';
 import { NotFoundError } from '../utils/errors.js';
 import type { TagWithCount } from '../types/index.js';
 
-const prisma = new PrismaClient();
-
 export class TagService {
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
   /**
    * Get all tags for a user with bookmark counts
    */
   async getUserTags(userId: string): Promise<TagWithCount[]> {
-    const tags = await prisma.tag.findMany({
+    const tags = await this.prisma.tag.findMany({
       where: { userId },
       include: {
         _count: {
@@ -38,7 +41,7 @@ export class TagService {
     }
 
     // Use transaction to ensure consistency
-    const tagIds = await prisma.$transaction(async (tx) => {
+    const tagIds = await this.prisma.$transaction(async (tx) => {
       // Fetch existing tags
       const existingTags = await tx.tag.findMany({
         where: {
@@ -77,7 +80,7 @@ export class TagService {
    */
   async syncBookmarkTags(bookmarkId: string, tagIds: string[]): Promise<void> {
     // Use transaction for atomicity (good pattern)
-    await prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // Remove existing associations
       await tx.bookmarkTag.deleteMany({
         where: { bookmarkId },
@@ -99,7 +102,7 @@ export class TagService {
    * Delete a tag
    */
   async deleteTag(userId: string, tagId: string): Promise<void> {
-    const result = await prisma.tag.deleteMany({
+    const result = await this.prisma.tag.deleteMany({
       where: { id: tagId, userId },
     });
 
@@ -112,7 +115,7 @@ export class TagService {
    * Rename a tag
    */
   async renameTag(userId: string, tagId: string, newName: string): Promise<void> {
-    const result = await prisma.tag.updateMany({
+    const result = await this.prisma.tag.updateMany({
       where: { id: tagId, userId },
       data: { name: newName.toLowerCase().trim() },
     });

@@ -5,10 +5,14 @@ import { config } from '../config.js';
 import { UnauthorizedError, ConflictError, ValidationError } from '../utils/errors.js';
 import type { RegisterInput, LoginInput, AuthResponse, AuthUser } from '../types/index.js';
 
-const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 
 export class UserService {
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
   /**
    * Register a new user
    */
@@ -25,10 +29,10 @@ export class UserService {
       throw new ValidationError('Password must be at least 8 characters');
     }
 
-    // Check if user already exists
-    const existing = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
+     // Check if user already exists
+     const existing = await this.prisma.user.findUnique({
+       where: { email: email.toLowerCase() },
+     });
 
     if (existing) {
       throw new ConflictError('Email already registered');
@@ -37,8 +41,8 @@ export class UserService {
     // Hash password
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user
-    const user = await prisma.user.create({
+     // Create user
+     const user = await this.prisma.user.create({
       data: {
         email: email.toLowerCase(),
         passwordHash,
@@ -63,10 +67,10 @@ export class UserService {
   async login(input: LoginInput): Promise<AuthResponse> {
     const { email, password } = input;
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
+     // Find user by email
+     const user = await this.prisma.user.findUnique({
+       where: { email: email.toLowerCase() },
+     });
 
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');

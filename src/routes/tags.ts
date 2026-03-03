@@ -1,9 +1,7 @@
 import { Type, type Static } from '@sinclair/typebox';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TagService } from '../services/tag.service.js';
 import { authMiddleware } from '../middleware/auth.js';
-
-const tagService = new TagService();
+import { container } from '../container.js';
 
 // TypeBox schemas
 const TagParamsSchema = Type.Object({
@@ -41,7 +39,7 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
     '/',
     { schema: { response: { 200: TagListResponseSchema } } },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      const tags = await tagService.getUserTags(request.user!.id);
+       const tags = await container.getTagService().getUserTags(request.user!.id);
       return { data: tags };
     }
   );
@@ -56,7 +54,7 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
       request: FastifyRequest<{ Params: TagParams; Body: RenameBody }>,
       reply: FastifyReply
     ) => {
-      await tagService.renameTag(request.user!.id, request.params.id, request.body.name);
+       await container.getTagService().renameTag(request.user!.id, request.params.id, request.body.name);
       return { success: true };
     }
   );
@@ -68,7 +66,7 @@ export async function tagRoutes(fastify: FastifyInstance): Promise<void> {
     '/:id',
     { schema: { params: TagParamsSchema } },
     async (request: FastifyRequest<{ Params: TagParams }>, reply: FastifyReply) => {
-      await tagService.deleteTag(request.user!.id, request.params.id);
+       await container.getTagService().deleteTag(request.user!.id, request.params.id);
       return reply.status(204).send();
     }
   );
