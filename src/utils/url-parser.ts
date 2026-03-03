@@ -1,7 +1,11 @@
+import { LRUCache } from 'lru-cache';
 import type { UrlMetadata } from '../types/index.js';
 
-// In-memory cache for URL metadata
-const metadataCache = new Map<string, UrlMetadata>();
+// LRU cache for URL metadata with max 500 entries and 24 hour TTL
+const metadataCache = new LRUCache<string, UrlMetadata>({
+  max: 500,
+  ttl: 1000 * 60 * 60 * 24, // 24 hours in milliseconds
+});
 
 /**
  * Parses HTML content to extract title and description
