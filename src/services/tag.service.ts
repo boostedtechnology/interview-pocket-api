@@ -30,30 +30,43 @@ export class TagService {
    * Get or create tags by name for a user
    */
   async getOrCreateTags(userId: string, tagNames: string[]): Promise<string[]> {
-    const normalizedNames = tagNames.map((name) => name.toLowerCase().trim());
-    const uniqueNames = [...new Set(normalizedNames)].filter(Boolean);
+    // Normalize and deduplicate tag names
+    const uniqueNames = [...new Set(tagNames.map((name) => name.toLowerCase().trim()))].filter(Boolean);
 
     if (uniqueNames.length === 0) {
       return [];
     }
 
-    // Use transaction to ensure consistency (good pattern)
+    // Use transaction to ensure consistency
     const tagIds = await prisma.$transaction(async (tx) => {
-      const ids: string[] = [];
+      // Fetch existing tags
+      const existingTags = await tx.tag.findMany({
+        where: {
+          userId,
+          name: { in: uniqueNames },
+        },
+      });
 
-      for (const name of uniqueNames) {
-        // Upsert each tag
-        const tag = await tx.tag.upsert({
-          where: {
-            userId_name: { userId, name },
-          },
-          create: { userId, name },
-          update: {},
-        });
-        ids.push(tag.id);
-      }
+      const existingNames = new Set(existingTags.map((t) => t.name));
+      const newNames = uniqueNames.filter((name) => !existingNames.has(name));
 
-      return ids;
+      // Create new tags if any
+      const newTags =
+        newNames.length > 0
+          ? await tx.tag.createMany({
+              data: newNames.map((name) => ({ userId, name })),
+            })
+          : { count: 0 };
+
+      // Fetch all tags (existing + newly created)
+      const allTags = await tx.tag.findMany({
+        where: {
+          userId,
+          name: { in: uniqueNames },
+        },
+      });
+
+      return allTags.map((t) => t.id);
     });
 
     return tagIds;
