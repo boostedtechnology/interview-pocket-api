@@ -63,12 +63,8 @@ export class BookmarkService {
       },
     });
 
-    if (!bookmark) {
+    if (!bookmark || bookmark.userId !== userId) {
       throw new NotFoundError('Bookmark not found');
-    }
-
-    if (bookmark.userId !== userId) {
-      throw new ForbiddenError('Access denied');
     }
 
     return {
@@ -148,17 +144,13 @@ export class BookmarkService {
     bookmarkId: string,
     input: UpdateBookmarkInput
   ): Promise<BookmarkWithTags> {
-    // Verify ownership
+    // Verify ownership by combining checks - return not found if either is false
     const existing = await prisma.bookmark.findUnique({
       where: { id: bookmarkId },
     });
 
-    if (!existing) {
+    if (!existing || existing.userId !== userId) {
       throw new NotFoundError('Bookmark not found');
-    }
-
-    if (existing.userId !== userId) {
-      throw new ForbiddenError('Access denied');
     }
 
     const { tags, ...updateData } = input;
@@ -186,12 +178,8 @@ export class BookmarkService {
       where: { id: bookmarkId },
     });
 
-    if (!bookmark) {
+    if (!bookmark || bookmark.userId !== userId) {
       throw new NotFoundError('Bookmark not found');
-    }
-
-    if (bookmark.userId !== userId) {
-      throw new ForbiddenError('Access denied');
     }
 
     await prisma.bookmark.delete({
