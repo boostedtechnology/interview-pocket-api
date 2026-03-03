@@ -50,12 +50,30 @@ export async function buildApp(): Promise<FastifyInstance> {
          },
        });
      }
-   );
+    );
 
-  // Health check endpoint
-  app.get('/health', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
-  });
+   // Capture request start time in preHandler hook
+   app.addHook('preHandler', async (request: FastifyRequest) => {
+     (request as any)._startTime = Date.now();
+   });
+
+   // Log request completion with response time in onResponse hook
+   app.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) => {
+     const startTime = (request as any)._startTime as number;
+     const responseTime = Date.now() - startTime;
+     
+     app.log.info({
+       method: request.method,
+       route: request.url,
+       statusCode: reply.statusCode,
+       responseTime: `${responseTime.toFixed(2)}ms`,
+     });
+   });
+
+   // Health check endpoint
+   app.get('/health', async () => {
+     return { status: 'ok', timestamp: new Date().toISOString() };
+   });
 
   // Register routes
   await app.register(authRoutes, { prefix: '/api/auth' });
