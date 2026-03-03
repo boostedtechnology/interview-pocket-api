@@ -86,34 +86,26 @@ export class TagService {
    * Delete a tag
    */
   async deleteTag(userId: string, tagId: string): Promise<void> {
-    const tag = await prisma.tag.findFirst({
+    const result = await prisma.tag.deleteMany({
       where: { id: tagId, userId },
     });
 
-    if (!tag) {
+    if (result.count === 0) {
       throw new NotFoundError('Tag not found');
     }
-
-    await prisma.tag.delete({
-      where: { id: tagId },
-    });
   }
 
   /**
    * Rename a tag
    */
   async renameTag(userId: string, tagId: string, newName: string): Promise<void> {
-    const tag = await prisma.tag.findFirst({
+    const result = await prisma.tag.updateMany({
       where: { id: tagId, userId },
-    });
-
-    if (!tag) {
-      throw new NotFoundError('Tag not found');
-    }
-
-    await prisma.tag.update({
-      where: { id: tagId },
       data: { name: newName.toLowerCase().trim() },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Tag not found');
+    }
   }
 }
