@@ -22,6 +22,9 @@ export const config = {
   // Database
   databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
 
+  // CORS configuration
+  corsOrigin: process.env.CORS_ORIGIN || (isDevelopment ? true : false),
+
   // Environment
   nodeEnv,
   isDevelopment,

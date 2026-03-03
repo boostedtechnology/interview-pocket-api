@@ -23,8 +23,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   // Register CORS
+  // In development, allow all origins. In production, use the configured origin allowlist.
   await app.register(cors, {
-    origin: true,
+    origin: config.corsOrigin,
     credentials: true,
   });
 
