@@ -101,7 +101,14 @@ Each item is scoped for an atomic commit.
 
 ---
 
-### 12. Introduce a service container to eliminate duplicate instances
+### 12. Expand test coverage to all endpoints
+- Add tests covering: all bookmark CRUD, archive/unarchive, all tag operations, auth edge cases (duplicate email, wrong password, missing/invalid token)
+
+**Commit:** `Expand test coverage to all API endpoints and key error cases`
+
+---
+
+### 13. Introduce a service container to eliminate duplicate instances
 - Create `src/container.ts`: single `PrismaClient`, single `TagService(prisma)`, single `BookmarkService(prisma, tagService)`, single `UserService(prisma)`
 - Update service constructors to accept `PrismaClient` as a parameter
 - Import from the container in middleware and routes; remove module-level `new PrismaClient()` from each service file
@@ -110,14 +117,14 @@ Each item is scoped for an atomic commit.
 
 ---
 
-### 13. Tighten the email validation regex
+### 14. Tighten the email validation regex
 - Replace the loose regex in `user.service.ts` with a stricter pattern (minimum: TLD of 2+ chars, no consecutive dots, standard character constraints)
 
 **Commit:** `Tighten email validation to reject more malformed addresses`
 
 ---
 
-### 14. Restrict CORS origin to an explicit allowlist in production
+### 15. Restrict CORS origin to an explicit allowlist in production
 - Add `CORS_ORIGIN` env var to `.env.example` and `src/config.ts`
 - In `src/app.ts`, set `origin` to the configured value in production and fall back to `true` in development
 
@@ -125,17 +132,10 @@ Each item is scoped for an atomic commit.
 
 ---
 
-### 15. Add per-request structured logging with response time
+### 16. Add per-request structured logging with response time
 - Add a Fastify `onResponse` hook in `src/app.ts` logging method, route, status code, and response time on every request
 
 **Commit:** `Add per-request structured logging hook with response time`
-
----
-
-### 16. Expand test coverage to all endpoints
-- After items 1–15, add tests covering: all bookmark CRUD, archive/unarchive, all tag operations, auth edge cases (duplicate email, wrong password, missing/invalid token)
-
-**Commit:** `Expand test coverage to all API endpoints and key error cases`
 
 ---
 
